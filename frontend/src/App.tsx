@@ -56,19 +56,28 @@ function App() {
   }
  
   async function increment() {
-    if (window.fuel) {
-      const wallet = await window.fuel.getWallet(account);
-      const contract = CounterContractAbi__factory.connect(CONTRACT_ID, wallet);
-      // Creates a transactions to call the increment function
-      // because it creates a TX and updates the contract state this requires the wallet to have enough coins to cover the costs and also to sign the Transaction
-      try {
-        await contract.functions.increment().txParams({ gasPrice: 1 }).call();
-        getCount();
-      } catch (err) {
-        console.log("error sending transaction...", err);
-      }
+  if (window.fuel) {
+    const wallet = await window.fuel.getWallet(account);
+    const contract = CounterContractAbi__factory.connect(CONTRACT_ID, wallet);
+
+    // Get the current gas price from Fuel
+    const gasPrice = await window.fuel.getGasPrice();
+
+    // Specify the amount of coins to send with the transaction
+    const value = 1;
+   
+    // Create a transaction to call the increment function
+    try {
+      await contract.functions.increment().txParams({
+        gasPrice: gasPrice.toNumber(),
+        value: value, // Specify the amount of coins to send with the transaction
+      }).call();
+      getCount();
+    } catch (err) {
+      console.log("error sending transaction...", err);
     }
   }
+}
  
   if (!loaded) return null
  
